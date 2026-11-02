@@ -1,0 +1,730 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Инженерный дашборд — Письменский Макар</title>
+  <style>
+    :root {
+      --bg: #f1f5f9;
+      --card: #ffffff;
+      --text: #0f172a;
+      --muted: #64748b;
+      --accent: #2563eb;
+      --accent2: #0ea5e9;
+      --border: #cbd5e1;
+      --result-bg: #e0f2fe;
+      --error: #dc2626;
+    }
+
+    body.dark {
+      --bg: #0f172a;
+      --card: #1e293b;
+      --text: #e2e8f0;
+      --muted: #94a3b8;
+      --accent: #60a5fa;
+      --accent2: #38bdf8;
+      --border: #334155;
+      --result-bg: #1e3a5f;
+      --error: #f87171;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      transition: background 0.3s, color 0.3s;
+    }
+
+    .app-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 16px;
+      padding: 18px 24px;
+      background: var(--card);
+      border-bottom: 1px solid var(--border);
+      position: sticky;
+      top: 0;
+      z-index: 10;
+    }
+
+    .app-header h1 {
+      font-size: 1.4rem;
+      margin: 0;
+    }
+
+    .app-header p {
+      margin: 4px 0 0;
+      color: var(--muted);
+      font-size: 0.9rem;
+    }
+
+    .theme-toggle {
+      padding: 10px 14px;
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      background: transparent;
+      color: var(--text);
+      cursor: pointer;
+      font-weight: 700;
+      white-space: nowrap;
+    }
+
+    .tabs {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      padding: 12px 24px;
+      background: var(--card);
+      border-bottom: 1px solid var(--border);
+    }
+
+    .tab-btn {
+      padding: 10px 16px;
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      background: transparent;
+      color: var(--text);
+      cursor: pointer;
+      font-weight: 600;
+    }
+
+    .tab-btn.active {
+      background: var(--accent);
+      color: #ffffff;
+      border-color: var(--accent);
+    }
+
+    main {
+      padding: 24px;
+      max-width: 1200px;
+      margin: 0 auto;
+    }
+
+    .tab-panel {
+      display: none;
+    }
+
+    .tab-panel.active {
+      display: block;
+    }
+
+    .card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 20px;
+      margin-bottom: 20px;
+      box-shadow: 0 4px 14px rgba(0, 0, 0, 0.05);
+    }
+
+    .card h2 {
+      margin-top: 0;
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 14px;
+    }
+
+    .field label {
+      display: block;
+      font-size: 0.85rem;
+      color: var(--muted);
+      margin-bottom: 4px;
+    }
+
+    .field input {
+      width: 100%;
+      padding: 10px 12px;
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      background: var(--bg);
+      color: var(--text);
+      font-size: 1rem;
+    }
+
+    .results {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+      gap: 14px;
+      margin-top: 18px;
+    }
+
+    .result-card {
+      background: var(--result-bg);
+      border-radius: 14px;
+      padding: 16px;
+      border: 1px solid var(--border);
+    }
+
+    .result-card .label {
+      font-size: 0.85rem;
+      color: var(--muted);
+    }
+
+    .result-card .value {
+      font-size: 1.8rem;
+      font-weight: 800;
+      margin-top: 6px;
+    }
+
+    .btn {
+      padding: 11px 18px;
+      border: none;
+      border-radius: 10px;
+      background: var(--accent);
+      color: #ffffff;
+      font-weight: 700;
+      cursor: pointer;
+      margin-top: 14px;
+      margin-right: 8px;
+    }
+
+    .btn.secondary {
+      background: var(--accent2);
+    }
+
+    .btn.danger {
+      background: var(--error);
+    }
+
+    .btn:hover {
+      opacity: 0.9;
+    }
+
+    .error {
+      color: var(--error);
+      font-weight: 600;
+      min-height: 1.2em;
+      margin-top: 8px;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 12px;
+    }
+
+    th, td {
+      border: 1px solid var(--border);
+      padding: 8px 10px;
+      text-align: left;
+    }
+
+    th {
+      background: var(--result-bg);
+    }
+
+    @media print {
+      body {
+        background: #ffffff !important;
+        color: #000000 !important;
+      }
+
+      .tabs,
+      .theme-toggle,
+      .btn,
+      .no-print {
+        display: none !important;
+      }
+
+      .app-header {
+        border: none;
+        padding: 0 0 10px;
+        position: static;
+      }
+
+      main {
+        padding: 0;
+        max-width: none;
+      }
+
+      .tab-panel {
+        display: none !important;
+      }
+
+      #report {
+        display: block !important;
+      }
+
+      .card {
+        box-shadow: none;
+        border: 1px solid #000000;
+      }
+
+      th, td {
+        border: 1px solid #000000 !important;
+      }
+
+      table {
+        border-collapse: collapse;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <header class="app-header">
+    <div>
+      <h1>Инженерный дашборд дорожного строительства</h1>
+      <p>Работа студента: Письменский Макар, группа 1132, вариант №4</p>
+    </div>
+    <button id="themeToggle" class="theme-toggle no-print">🌙 Тема</button>
+  </header>
+
+  <nav class="tabs no-print">
+    <button class="tab-btn active" data-tab="module1">Модуль 1: Объёмы земляного полотна</button>
+    <button class="tab-btn" data-tab="module2">Модуль 2: Потребность в щебне</button>
+    <button class="tab-btn" data-tab="module3">Модуль 3: Логистика рейса</button>
+    <button class="tab-btn" data-tab="report">Сводный отчёт</button>
+  </nav>
+
+  <main>
+    <!-- Модуль 1 -->
+    <section id="module1" class="tab-panel active">
+      <div class="card">
+        <h2>Модуль 1. Объёмы земляного полотна</h2>
+        <p>Формулы: V = L · B · H; M = V · ρ. Плотность грунта по умолчанию ρ = 1.8 т/м³.</p>
+
+        <div class="grid">
+          <div class="field">
+            <label>Длина L, м</label>
+            <input type="number" id="m1_L" value="100" min="0" step="0.01">
+          </div>
+          <div class="field">
+            <label>Ширина B, м</label>
+            <input type="number" id="m1_B" value="7" min="0" step="0.01">
+          </div>
+          <div class="field">
+            <label>Высота H, м</label>
+            <input type="number" id="m1_H" value="0.3" min="0" step="0.01">
+          </div>
+          <div class="field">
+            <label>Плотность ρ, т/м³</label>
+            <input type="number" id="m1_rho" value="1.8" min="0" step="0.01">
+          </div>
+        </div>
+
+        <button class="btn" id="calc1">Рассчитать Модуль 1</button>
+        <button class="btn secondary" id="pass1to2">Передать Объём в Модуль 2</button>
+        <div class="error" id="m1_error"></div>
+
+        <div class="results">
+          <div class="result-card">
+            <div class="label">Объём V, м³</div>
+            <div class="value" id="m1_V">0.00</div>
+          </div>
+          <div class="result-card">
+            <div class="label">Масса M, т</div>
+            <div class="value" id="m1_M">0.00</div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Модуль 2 -->
+    <section id="module2" class="tab-panel">
+      <div class="card">
+        <h2>Модуль 2. Потребность в щебне</h2>
+        <p>Формулы: V = L · B · h · K; M = V · ρ. K = 1.25. Если объём передан из Модуля 1, он имеет приоритет.</p>
+
+        <div class="grid">
+          <div class="field">
+            <label>Объём V из Модуля 1, м³</label>
+            <input type="number" id="m2_volume" value="" min="0" step="0.01" placeholder="Можно передать из Модуля 1">
+          </div>
+          <div class="field">
+            <label>Длина L, м</label>
+            <input type="number" id="m2_L" value="100" min="0" step="0.01">
+          </div>
+          <div class="field">
+            <label>Ширина B, м</label>
+            <input type="number" id="m2_B" value="7" min="0" step="0.01">
+          </div>
+          <div class="field">
+            <label>Толщина h, м</label>
+            <input type="number" id="m2_h" value="0.2" min="0" step="0.01">
+          </div>
+          <div class="field">
+            <label>Коэффициент K</label>
+            <input type="number" id="m2_K" value="1.25" min="0" step="0.01">
+          </div>
+          <div class="field">
+            <label>Плотность щебня ρ, т/м³</label>
+            <input type="number" id="m2_rho" value="1.4" min="0" step="0.01">
+          </div>
+        </div>
+
+        <button class="btn" id="calc2">Рассчитать Модуль 2</button>
+        <button class="btn secondary" id="pass2to3">Передать Объём в Модуль 3</button>
+        <div class="error" id="m2_error"></div>
+
+        <div class="results">
+          <div class="result-card">
+            <div class="label">Объём V, м³</div>
+            <div class="value" id="m2_V">0.00</div>
+          </div>
+          <div class="result-card">
+            <div class="label">Масса M, т</div>
+            <div class="value" id="m2_M">0.00</div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Модуль 3 -->
+    <section id="module3" class="tab-panel">
+      <div class="card">
+        <h2>Модуль 3. Логистика рейса</h2>
+        <p>Формула времени рейса: T = 2L / V · 60 + t_погр + t_разгр. Число рейсов: N = ceil(V_груза / q).</p>
+
+        <div class="grid">
+          <div class="field">
+            <label>Объём груза V из Модуля 2, м³</label>
+            <input type="number" id="m3_cargoVolume" value="" min="0" step="0.01" placeholder="Можно передать из Модуля 2">
+          </div>
+          <div class="field">
+            <label>Расстояние L, км</label>
+            <input type="number" id="m3_L" value="20" min="0" step="0.01">
+          </div>
+          <div class="field">
+            <label>Скорость V, км/ч</label>
+            <input type="number" id="m3_V" value="40" min="0" step="0.01">
+          </div>
+          <div class="field">
+            <label>Время погрузки t_погр, мин</label>
+            <input type="number" id="m3_t_load" value="10" min="0" step="0.01">
+          </div>
+          <div class="field">
+            <label>Время разгрузки t_разгр, мин</label>
+            <input type="number" id="m3_t_unload" value="10" min="0" step="0.01">
+          </div>
+          <div class="field">
+            <label>Вместимость кузова q, м³</label>
+            <input type="number" id="m3_q" value="10" min="0" step="0.01">
+          </div>
+        </div>
+
+        <button class="btn" id="calc3">Рассчитать Модуль 3</button>
+        <div class="error" id="m3_error"></div>
+
+        <div class="results">
+          <div class="result-card">
+            <div class="label">Время рейса, мин</div>
+            <div class="value" id="m3_T_trip">0.00</div>
+          </div>
+          <div class="result-card">
+            <div class="label">Число рейсов N</div>
+            <div class="value" id="m3_N">0</div>
+          </div>
+          <div class="result-card">
+            <div class="label">Общее время, мин</div>
+            <div class="value" id="m3_T_total_min">0.00</div>
+          </div>
+          <div class="result-card">
+            <div class="label">Общее время, ч</div>
+            <div class="value" id="m3_T_total_h">0.00</div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Сводный отчёт -->
+    <section id="report" class="tab-panel">
+      <div class="card">
+        <h2>Сводный отчёт по проекту</h2>
+        <p>Нажмите «Сформировать отчёт», чтобы актуализировать данные из всех модулей.</p>
+
+        <button class="btn" id="genReport">Сформировать отчёт</button>
+        <button class="btn secondary" id="saveProject">Сохранить проект</button>
+        <button class="btn danger" id="printReport">Печать / Экспорт в PDF</button>
+
+        <div id="reportContent">
+          <p>Отчёт ещё не сформирован.</p>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <script>
+    // =========================================================================
+    // ВНИМАНИЕ! ОБЯЗАТЕЛЬНО ЗАМЕНИ 'https://script.google.com/macros/s/AKfycbzSUQyzoynE9Ljl_vNf4xQlEx6z8gsa9P44L-sdq6hZUlVBInIK8_9sKY9YQuL8DGCT/exec' НА ССЫЛКУ ИЗ GOOGLE APPS SCRIPT!
+    // =========================================================================
+    const SCRIPT_URL = 'ВАША_ССЫЛКА'; 
+
+    function sendToGoogleSheets(moduleName, resultValue, inputData) {
+      const dataToSend = {
+        objectName: moduleName,
+        result: resultValue,
+        inputData: inputData
+      };
+
+      fetch(SCRIPT_URL, {
+        method: 'POST',
+        mode: 'no-cors',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(dataToSend)
+      })
+      .then(() => console.log('Данные отправлены: ' + moduleName))
+      .catch(err => console.error('Ошибка:', err));
+    }
+
+    const state = {
+      module1: { L: 0, B: 0, H: 0, rho: 0, V: 0, M: 0 },
+      module2: { volume: 0, L: 0, B: 0, h: 0, K: 0, rho: 0, V: 0, M: 0 },
+      module3: { cargoVolume: 0, L: 0, V: 0, t_load: 0, t_unload: 0, q: 0, T_trip: 0, N: 0, T_total_min: 0, T_total_h: 0 }
+    };
+
+    function getVal(id) {
+      const el = document.getElementById(id);
+      if (!el) return 0;
+      const v = parseFloat(el.value);
+      return isNaN(v) ? 0 : v;
+    }
+
+    function checkNonNegative(ids, errorId) {
+      for (let id of ids) {
+        const el = document.getElementById(id);
+        if (!el) continue;
+        const v = parseFloat(el.value);
+        if (!isNaN(v) && v < 0) {
+          document.getElementById(errorId).textContent = 'Ошибка: отрицательные значения недопустимы.';
+          return false;
+        }
+      }
+      document.getElementById(errorId).textContent = '';
+      return true;
+    }
+
+    function calculateModule1() {
+      if (!checkNonNegative(['m1_L', 'm1_B', 'm1_H', 'm1_rho'], 'm1_error')) return;
+
+      const L = getVal('m1_L');
+      const B = getVal('m1_B');
+      const H = getVal('m1_H');
+      const rho = getVal('m1_rho');
+
+      const V = L * B * H;
+      const M = V * rho;
+
+      state.module1 = { L, B, H, rho, V, M };
+
+      document.getElementById('m1_V').textContent = V.toFixed(2);
+      document.getElementById('m1_M').textContent = M.toFixed(2);
+
+      // ОТПРАВКА ДАННЫХ В ТАБЛИЦУ
+      sendToGoogleSheets('Модуль 1 (Объем)', V.toFixed(2), 'L=' + L + ', B=' + B + ', H=' + H);
+    }
+
+    function calculateModule2() {
+      if (!checkNonNegative(['m2_volume', 'm2_L', 'm2_B', 'm2_h', 'm2_K', 'm2_rho'], 'm2_error')) return;
+
+      const volumeInput = parseFloat(document.getElementById('m2_volume').value);
+      const L = getVal('m2_L');
+      const B = getVal('m2_B');
+      const h = getVal('m2_h');
+      const K = getVal('m2_K');
+      const rho = getVal('m2_rho');
+
+      let V;
+      if (!isNaN(volumeInput) && volumeInput > 0) {
+        V = volumeInput;
+      } else {
+        V = L * B * h * K;
+      }
+
+      const M = V * rho;
+
+      state.module2 = { volume: volumeInput || 0, L, B, h, K, rho, V, M };
+
+      document.getElementById('m2_V').textContent = V.toFixed(2);
+      document.getElementById('m2_M').textContent = M.toFixed(2);
+
+      // ОТПРАВКА ДАННЫХ В ТАБЛИЦУ
+      sendToGoogleSheets('Модуль 2 (Щебень)', V.toFixed(2), 'L=' + L + ', B=' + B + ', h=' + h);
+    }
+
+    function calculateModule3() {
+      if (!checkNonNegative(['m3_cargoVolume', 'm3_L', 'm3_V', 'm3_t_load', 'm3_t_unload', 'm3_q'], 'm3_error')) return;
+
+      const cargoVolume = getVal('m3_cargoVolume');
+      const L = getVal('m3_L');
+      const V = getVal('m3_V');
+      const t_load = getVal('m3_t_load');
+      const t_unload = getVal('m3_t_unload');
+      const q = getVal('m3_q');
+
+      if (V <= 0) {
+        document.getElementById('m3_error').textContent = 'Ошибка: скорость должна быть больше 0.';
+        return;
+      }
+
+      const T_trip = (2 * L / V) * 60 + t_load + t_unload;
+      const N = (cargoVolume > 0 && q > 0) ? Math.ceil(cargoVolume / q) : 1;
+      const T_total_min = N * T_trip;
+      const T_total_h = T_total_min / 60;
+
+      state.module3 = { cargoVolume, L, V, t_load, t_unload, q, T_trip, N, T_total_min, T_total_h };
+
+      document.getElementById('m3_T_trip').textContent = T_trip.toFixed(2);
+      document.getElementById('m3_N').textContent = N;
+      document.getElementById('m3_T_total_min').textContent = T_total_min.toFixed(2);
+      document.getElementById('m3_T_total_h').textContent = T_total_h.toFixed(2);
+
+      // ОТПРАВКА ДАННЫХ В ТАБЛИЦУ
+      sendToGoogleSheets('Модуль 3 (Логистика)', T_total_h.toFixed(2), 'L=' + L + ', V=' + V + ', Объем=' + cargoVolume);
+    }
+
+    function calculateAll() {
+      calculateModule1();
+      calculateModule2();
+      calculateModule3();
+    }
+
+    function switchTab(tabId) {
+      document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+      document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+
+      document.getElementById(tabId).classList.add('active');
+      const btn = document.querySelector(`.tab-btn[data-tab="${tabId}"]`);
+      if (btn) btn.classList.add('active');
+    }
+
+    function generateReport() {
+      calculateAll();
+
+      const s1 = state.module1;
+      const s2 = state.module2;
+      const s3 = state.module3;
+
+      const html = `
+        <h2>Сводный отчёт по проекту</h2>
+        <p><strong>Студент:</strong> Письменский Макар, группа 1132, вариант №4</p>
+        <p><strong>Дата формирования:</strong> ${new Date().toLocaleString('ru-RU')}</p>
+
+        <table>
+          <thead>
+            <tr>
+              <th>Модуль</th>
+              <th>Параметр</th>
+              <th>Значение</th>
+              <th>Ед.</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr><td rowspan="5">Модуль 1. Объёмы земляного полотна</td><td>Длина L</td><td>${s1.L.toFixed(2)}</td><td>м</td></tr>
+            <tr><td>Ширина B</td><td>${s1.B.toFixed(2)}</td><td>м</td></tr>
+            <tr><td>Высота H</td><td>${s1.H.toFixed(2)}</td><td>м</td></tr>
+            <tr><td>Объём V</td><td>${s1.V.toFixed(2)}</td><td>м³</td></tr>
+            <tr><td>Масса M</td><td>${s1.M.toFixed(2)}</td><td>т</td></tr>
+
+            <tr><td rowspan="8">Модуль 2. Потребность в щебне</td><td>Объём из Модуля 1</td><td>${s2.volume.toFixed(2)}</td><td>м³</td></tr>
+            <tr><td>Длина L</td><td>${s2.L.toFixed(2)}</td><td>м</td></tr>
+            <tr><td>Ширина B</td><td>${s2.B.toFixed(2)}</td><td>м</td></tr>
+            <tr><td>Толщина h</td><td>${s2.h.toFixed(2)}</td><td>м</td></tr>
+            <tr><td>Коэффициент K</td><td>${s2.K.toFixed(2)}</td><td>—</td></tr>
+            <tr><td>Плотность ρ</td><td>${s2.rho.toFixed(2)}</td><td>т/м³</td></tr>
+            <tr><td>Объём V</td><td>${s2.V.toFixed(2)}</td><td>м³</td></tr>
+            <tr><td>Масса M</td><td>${s2.M.toFixed(2)}</td><td>т</td></tr>
+
+            <tr><td rowspan="10">Модуль 3. Логистика рейса</td><td>Объём груза</td><td>${s3.cargoVolume.toFixed(2)}</td><td>м³</td></tr>
+            <tr><td>Расстояние L</td><td>${s3.L.toFixed(2)}</td><td>км</td></tr>
+            <tr><td>Скорость V</td><td>${s3.V.toFixed(2)}</td><td>км/ч</td></tr>
+            <tr><td>Время погрузки</td><td>${s3.t_load.toFixed(2)}</td><td>мин</td></tr>
+            <tr><td>Время разгрузки</td><td>${s3.t_unload.toFixed(2)}</td><td>мин</td></tr>
+            <tr><td>Вместимость кузова q</td><td>${s3.q.toFixed(2)}</td><td>м³</td></tr>
+            <tr><td>Время рейса</td><td>${s3.T_trip.toFixed(2)}</td><td>мин</td></tr>
+            <tr><td>Число рейсов N</td><td>${s3.N}</td><td>шт</td></tr>
+            <tr><td>Общее время</td><td>${s3.T_total_min.toFixed(2)}</td><td>мин</td></tr>
+            <tr><td>Общее время</td><td>${s3.T_total_h.toFixed(2)}</td><td>ч</td></tr>
+          </tbody>
+        </table>
+      `;
+
+      document.getElementById('reportContent').innerHTML = html;
+    }
+
+    function saveProject() {
+      const data = {};
+      document.querySelectorAll('input').forEach(inp => {
+        if (inp.id) data[inp.id] = inp.value;
+      });
+
+      data.theme = document.body.classList.contains('dark') ? 'dark' : 'light';
+      localStorage.setItem('dashboardProject', JSON.stringify(data));
+      alert('Проект сохранён в localStorage.');
+    }
+
+    function loadProject() {
+      const raw = localStorage.getItem('dashboardProject');
+      if (!raw) return;
+
+      try {
+        const data = JSON.parse(raw);
+
+        for (const id in data) {
+          if (id === 'theme') continue;
+          const el = document.getElementById(id);
+          if (el) el.value = data[id];
+        }
+
+        if (data.theme === 'dark') {
+          document.body.classList.add('dark');
+          document.getElementById('themeToggle').textContent = '☀️ Тема';
+        }
+      } catch (e) {
+        console.warn('Не удалось загрузить сохранённый проект.');
+      }
+    }
+
+    document.addEventListener('DOMContentLoaded', () => {
+      document.querySelectorAll('.tab-btn').forEach(btn => {
+        btn.addEventListener('click', (e) => {
+          e.preventDefault();
+          switchTab(btn.dataset.tab);
+        });
+      });
+
+      document.getElementById('themeToggle').addEventListener('click', () => {
+        document.body.classList.toggle('dark');
+        const isDark = document.body.classList.contains('dark');
+        document.getElementById('themeToggle').textContent = isDark ? '☀️ Тема' : '🌙 Тема';
+        saveProject();
+      });
+
+      document.getElementById('calc1').addEventListener('click', calculateModule1);
+      document.getElementById('calc2').addEventListener('click', calculateModule2);
+      document.getElementById('calc3').addEventListener('click', calculateModule3);
+
+      document.getElementById('pass1to2').addEventListener('click', () => {
+        calculateModule1();
+        document.getElementById('m2_volume').value = state.module1.V.toFixed(2);
+        switchTab('module2');
+        calculateModule2();
+      });
+
+      document.getElementById('pass2to3').addEventListener('click', () => {
+        calculateModule2();
+        document.getElementById('m3_cargoVolume').value = state.module2.V.toFixed(2);
+        switchTab('module3');
+        calculateModule3();
+      });
+
+      document.getElementById('genReport').addEventListener('click', generateReport);
+      document.getElementById('saveProject').addEventListener('click', saveProject);
+      document.getElementById('printReport').addEventListener('click', () => window.print());
+
+      loadProject();
+      calculateAll();
+    });
+  </script>
+</body>
+</html>
