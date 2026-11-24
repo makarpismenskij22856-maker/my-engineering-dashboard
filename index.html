@@ -461,6 +461,27 @@
       module3: { cargoVolume: 0, L: 0, V: 0, t_load: 0, t_unload: 0, q: 0, T_trip: 0, N: 0, T_total_min: 0, T_total_h: 0 }
     };
 
+    const WEB_APP_URL = 'https://script.google.com/macros/s/AKfycbwELmycmsHIVDw03ecTN0A5B7Wc_volucJiXhIWdV9EDoRBgn2n8HSnRW8xv1WJwY9u/exec';
+
+    function sendToGoogleSheets(moduleName, resultValue, inputData) {
+      const dataToSend = {
+        module: moduleName,
+        objectName: 'Письменский Макар, гр. 1132, вариант №4',
+        result: resultValue,
+        inputData: inputData
+      };
+
+      console.log('Отправка:', dataToSend);
+
+      fetch(WEB_APP_URL, {
+        method: 'POST',
+        mode: 'no-cors',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(dataToSend)
+      })
+        .then(() => console.log('Данные отправлены'))
+        .catch(err => console.error('Ошибка отправки:', err));
+    }
     function getVal(id) {
       const el = document.getElementById(id);
       if (!el) return 0;
@@ -669,10 +690,32 @@
         saveProject();
       });
 
-      document.getElementById('calc1').addEventListener('click', calculateModule1);
-      document.getElementById('calc2').addEventListener('click', calculateModule2);
-      document.getElementById('calc3').addEventListener('click', calculateModule3);
+      document.getElementById('calc1').addEventListener('click', () => {
+        calculateModule1();
+        sendToGoogleSheets(
+          'Модуль 1',
+          'V=' + state.module1.V.toFixed(2) + ' м³; M=' + state.module1.M.toFixed(2) + ' т',
+          'L=' + state.module1.L + ', B=' + state.module1.B + ', H=' + state.module1.H + ', ρ=' + state.module1.rho
+        );
+      });
 
+      document.getElementById('calc2').addEventListener('click', () => {
+        calculateModule2();
+        sendToGoogleSheets(
+          'Модуль 2',
+          'V=' + state.module2.V.toFixed(2) + ' м³; M=' + state.module2.M.toFixed(2) + ' т',
+          'L=' + state.module2.L + ', B=' + state.module2.B + ', h=' + state.module2.h + ', K=' + state.module2.K + ', ρ=' + state.module2.rho
+        );
+      });
+
+      document.getElementById('calc3').addEventListener('click', () => {
+        calculateModule3();
+        sendToGoogleSheets(
+          'Модуль 3',
+          'T_рейса=' + state.module3.T_trip.toFixed(2) + ' мин; N=' + state.module3.N + '; T_общ=' + state.module3.T_total_h.toFixed(2) + ' ч',
+          'L=' + state.module3.L + ' км, V=' + state.module3.V + ' км/ч, t_погр=' + state.module3.t_load + ', t_разгр=' + state.module3.t_unload + ', q=' + state.module3.q
+        );
+      });
       document.getElementById('pass1to2').addEventListener('click', () => {
         calculateModule1();
         document.getElementById('m2_volume').value = state.module1.V.toFixed(2);
